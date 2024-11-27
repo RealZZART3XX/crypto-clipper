@@ -6,7 +6,7 @@ A simple, lightweight clipboard monitor for cryptocurrency addresses. This tool 
 
 - **Monitors clipboard**: Tracks clipboard changes in real-time to detect cryptocurrency addresses.
 - **Address Recognition**: Supports popular cryptocurrency addresses such as Bitcoin (BTC), Ethereum (ETH), Litecoin (LTC), Monero (XMR), Ripple (XRP), Dogecoin (DOGE), and more.
-- **Clipboard Replacement**: Replaces detected cryptocurrency addresses with custom labels like "BTC Address", "ETH Address", etc.
+- **Clipboard Replacement**: Replaces detected cryptocurrency addresses with custom labels like "BTC Address", "ETH Address", etc (change with yours addresses).
 - **Self-installation**: Installs itself in the user’s `AppData` directory and ensures it starts with Windows.
 - **Single Instance**: Ensures only one instance of the program runs at a time using a mutex.
 - **Low Resource Consumption**: The application is designed to be lightweight and uses minimal system resources, making it ideal for running silently in the background.
