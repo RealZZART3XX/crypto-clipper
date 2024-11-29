@@ -12,6 +12,7 @@ A simple, lightweight clipboard monitor for cryptocurrency addresses. This tool 
 - **Low Resource Consumption**: The application is designed to be lightweight and uses minimal system resources, making it ideal for running silently in the background.
 - **Discreet Operation**: Operates in the background without noticeable impact on the user’s experience. It is designed to be stealthy, and when obfuscated, it can bypass most security software (including Windows Defender).
 - **Automatic Sleep Mode**: The application automatically pauses clipboard monitoring after a period of inactivity (e.g., no mouse movement or clipboard activity for a set duration), reducing unnecessary resource consumption.
+- **Telegram Notification**: Sends a notification to a specified Telegram chat whenever the clipper is opened, providing real-time updates on its status.
 
 ## Supported Cryptocurrencies 💰
 
