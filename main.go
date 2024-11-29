@@ -48,7 +48,6 @@ var regexList = []regexPair{
 	{regexp.MustCompile(`(^|\W)(bc1|[13])[a-zA-HJ-NP-Z0-9]{25,39}($|\W)`), "btc address"},
 	{regexp.MustCompile(`^t1[1-9A-HJ-NP-Za-km-zA-Z0-9]{33}$`), "Zcash Address"},
 	{regexp.MustCompile(`^z[1-9A-HJ-NP-Za-km-zA-Z0-9]{33}$`), "Zcash Address"},
-	{regexp.MustCompile(`^[1-9A-HJ-NP-Za-km-z]{32,44}$`), "Solana Address"},
 	{regexp.MustCompile(`^bnb1[a-z0-9]{38}$`), "BNB Address"},
 }
 
